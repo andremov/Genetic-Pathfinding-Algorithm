@@ -18,91 +18,80 @@ import java.util.ArrayList;
 public class Genes {
     
     
-    public static final int STRAND_LENGTH = 4;
-    public static final int VALUE_LENGTH = 2;
+    public static final int STRAND_LENGTH = 3;
     
-    public static final int FORCE_MUTATE_STATS = 0;
-    public static final int FORCE_MUTATE_ACTIONS = 1;
-    public static final int FORCE_NOTHING = 2;
-    
-    public static final String STRAND_ACTION_UP = "10";
-    public static final String STRAND_ACTION_DOWN = "00";
-    public static final String STRAND_ACTION_LEFT = "01";
-    public static final String STRAND_ACTION_RIGHT = "11";
-    
-    public static final int NUM_STRANDS = 20;
+    public static final int NUM_STRANDS = 10;
     
     /**
      * Strands of genes.
      */
-    private final String[] strands;
+    private String[] identities;
+    private String[] reactions;
     
     public Genes() {
-	strands = newStrands();
+	identities = new String[10];
+	createIdentities();
+	reactions = newReactions();
     }
     
-    public Genes(String[] strands) {
-	this.strands = strands;
+    public String[] getReactions() {
+	return reactions;
     }
     
-    public static Genes mutateStrand(Genes original, int force) {
-	String[] actions = original.getActionStrands();
-	String[] stats = original.getStatStrands();
+    public String[] getIdentities() {
+	return identities;
+    }
+    
+    private void createIdentities() {
+	int numIdentities = 0;
+	for (int i = 0; i < 2; i++) {
+	    for (int j = 0; j < 2; j++) {
+		for (int k = 0; k < 2; k++) {
+		    this.identities[numIdentities] = i+""+j+""+k;
+		    numIdentities++;
+		}
+	    }
+	}
+    }
+    
+    private String[] newReactions() {
+	String[] r = new String[10];
+	for (int i = 0; i < STRAND_LENGTH; i++) {
+	    r[i] = newReaction();
+	}
+	return r;
+    }
+    
+    public Genes(String[] identities, String[] reactions) {
+	this.identities = identities;
+	this.reactions = reactions;
+    }
+    
+    public static Genes mutateStrand(Genes original) {
+	String[] reactions = original.getReactions();
 	
 	int chosenStrand;
-	switch (force) {
-	    case FORCE_MUTATE_STATS:
-		chosenStrand = AGA.r.nextInt(10);
-		break;
-	    case FORCE_MUTATE_ACTIONS:
-		chosenStrand = AGA.r.nextInt(5) + 10;
-		break;
-	    default:
-		chosenStrand = AGA.r.nextInt(15);
-		break;
-	}
+	chosenStrand = GP.r.nextInt(NUM_STRANDS);
 	
-	if (chosenStrand < 10) {
-	    stats[chosenStrand] = newStrand();
-	} else {
-	    chosenStrand -= 10;
-	    actions[chosenStrand] = newStrand();
-	}
+	reactions[chosenStrand] = newReaction();
 	
-	return new Genes(stats, actions);
+	return new Genes(original.getIdentities(), reactions);
     }
     
-    public static Genes mutateBit(Genes original, int force) {
-	String[] actions = original.getActionStrands();
-	String[] stats = original.getStatStrands();
+    public static Genes mutateBit(Genes original) {
+	String[] reactions = original.getReactions();
 	char[] inverse = new char[] {'1', '0'};
 	
 	int chosenStrand;
-	switch (force) {
-	    case FORCE_MUTATE_STATS:
-		chosenStrand = AGA.r.nextInt(10);
-		break;
-	    case FORCE_MUTATE_ACTIONS:
-		chosenStrand = AGA.r.nextInt(5) + 10;
-		break;
-	    default:
-		chosenStrand = AGA.r.nextInt(15);
-		break;
-	}
+	chosenStrand = GP.r.nextInt(NUM_STRANDS);
 	
-	int chosenBit = AGA.r.nextInt(4);
-	if (chosenStrand < 10) {
-	    String strand = stats[chosenStrand];
-	    char newBit = inverse[Integer.parseInt(""+strand.charAt(chosenBit))];
-	    stats[chosenStrand] = strand.substring(0, chosenBit) + newBit + strand.substring(chosenBit+1);
-	} else {
-	    chosenStrand -= 10;
-	    String strand = actions[chosenStrand];
-	    char newBit = inverse[Integer.parseInt(""+strand.charAt(chosenBit))];
-	    actions[chosenStrand] = strand.substring(0, chosenBit) + newBit + strand.substring(chosenBit+1);
-	}
+	int chosenBit = GP.r.nextInt(STRAND_LENGTH);
 	
-	return new Genes(stats, actions);
+	String strand = reactions[chosenStrand];
+	char newBit = inverse[Integer.parseInt(""+strand.charAt(chosenBit))];
+	reactions[chosenStrand] = strand.substring(0, chosenBit) + newBit + strand.substring(chosenBit+1);
+	
+	return new Genes(original.getIdentities(), reactions);
     }
     
     private static String[] mixStrands(String[] father, String[] mother) {
@@ -124,139 +113,43 @@ public class Genes {
     }
     
     public static ArrayList<Genes> breed(Genes father, Genes mother) {
+	String[] identities = father.getIdentities();
 	
-	String[] fatherStats = father.getStatStrands();
-	String[] motherStats = mother.getStatStrands();
-	String[] fatherActions = father.getActionStrands();
-	String[] motherActions = mother.getActionStrands();
-	String[] mixedActions = mixStrands(fatherActions, motherActions);
-	String[] mixedStats = mixStrands(fatherStats, motherStats);
+	String[] fatherReactions = father.getReactions();
+	String[] motherReactions = mother.getReactions();
+	String[] mixedReactions = mixStrands(fatherReactions, motherReactions);
 	
 	ArrayList<Genes> results = new ArrayList<>();
 	
 	if (Handler.p.getSingleBitMutations()) {
 	    //SINGLE 1B ANYTHING
-	    results.add(Genes.mutateBit(father, FORCE_NOTHING));
-	    results.add(Genes.mutateBit(mother, FORCE_NOTHING));
-	}
-	
-	if (Handler.p.getSingleSpecificBitMutations()) {
-	    // SINGLE 1B ACTIONS
-	    results.add(Genes.mutateBit(father, FORCE_MUTATE_ACTIONS));
-	    results.add(Genes.mutateBit(mother, FORCE_MUTATE_ACTIONS));
-	
-	    // SINGLE 1B STATS
-	    results.add(Genes.mutateBit(father, FORCE_MUTATE_STATS));
-	    results.add(Genes.mutateBit(mother, FORCE_MUTATE_STATS));
+	    results.add(Genes.mutateBit(father));
+	    results.add(Genes.mutateBit(mother));
 	}
 	
 	if (Handler.p.getSingleStrandMutations()) {
 	    //SINGLE 1 ANYTHING
-	    results.add(Genes.mutateStrand(father, FORCE_NOTHING));
-	    results.add(Genes.mutateStrand(mother, FORCE_NOTHING));
-	}
-	
-	if (Handler.p.getSingleSpecificStrandMutations()) {
-	    //SINGLE 1 STAT
-	    results.add(Genes.mutateStrand(father, FORCE_MUTATE_STATS));
-	    results.add(Genes.mutateStrand(mother, FORCE_MUTATE_STATS));
-	    
-	    //SINGLE 1 ACTION
-	    results.add(Genes.mutateStrand(father, FORCE_MUTATE_ACTIONS));
-	    results.add(Genes.mutateStrand(mother, FORCE_MUTATE_ACTIONS));
-	}
-	
-	if (Handler.p.getSingleBlockMutations()) {
-	    //SINGLE ALL ACTIONS
-	    results.add(new Genes(fatherStats, newActionStrands()));
-	    results.add(new Genes(motherStats, newActionStrands()));
-	    
-	    //SINGLE ALL STATS
-	    results.add(new Genes(newStatStrands(), fatherActions));
-	    results.add(new Genes(newStatStrands(), motherActions));
-	}
-	
-	if (Handler.p.getBreedForceKeep()) {
-	    //MIXED ACTIONS
-	    results.add(new Genes(fatherStats, mixedActions));
-	    results.add(new Genes(motherStats, mixedActions));
-	    
-	    //MIXED STATS
-	    results.add(new Genes(mixedStats, fatherActions));
-	    results.add(new Genes(mixedStats, motherActions));
-	}
-
-	if (Handler.p.getBreedMakeNew()) {
-	    //MIXED + NEW
-	    results.add(new Genes(newStatStrands(), mixedActions));
-	    results.add(new Genes(mixedStats, newActionStrands()));
+	    results.add(Genes.mutateStrand(father));
+	    results.add(Genes.mutateStrand(mother));
 	}
 	
 	if (Handler.p.getDirectBreed()) {
 	    //MIXED ALL
-	    results.add(new Genes(mixedStats, mixedActions));
+	    results.add(new Genes(identities, mixedReactions));
 	}
 	
 	if (Handler.p.getBreedBitMutations()) {
-	    results.add(Genes.mutateBit(new Genes(mixedStats, mixedActions), FORCE_NOTHING));
+	    results.add(Genes.mutateBit(new Genes(identities, mixedReactions)));
 	}
 	
 	if (Handler.p.getBreedStrandMutations()) {
-	    results.add(Genes.mutateStrand(new Genes(mixedStats, mixedActions), FORCE_NOTHING));
-	}
-	
-	if (Handler.p.getBreedSpecificBitMutations()) {
-	    results.add(Genes.mutateBit(new Genes(mixedStats, mixedActions), FORCE_MUTATE_ACTIONS));
-	    results.add(Genes.mutateBit(new Genes(mixedStats, mixedActions), FORCE_MUTATE_STATS));
-	}
-	
-	if (Handler.p.getBreedSpecificStrandMutations()) {
-	    results.add(Genes.mutateStrand(new Genes(mixedStats, mixedActions), FORCE_MUTATE_ACTIONS));
-	    results.add(Genes.mutateStrand(new Genes(mixedStats, mixedActions), FORCE_MUTATE_STATS));
+	    results.add(Genes.mutateStrand(new Genes(identities, mixedReactions)));
 	}
 	
 	return results;
     }
     
-    public Action getAction(int num) {
-	String s = getActionStrands()[num].substring(0, VALUE_LENGTH);
-	int action = Action.ACTION_WAIT;
-	double delay = 1.0;
-	
-	if (s.equals(STRAND_ACTION_ATTACK)) {
-	    action = Action.ACTION_ATTACK;
-	} else if (s.equals(STRAND_ACTION_SHIELD_DOWN)) {
-	    action = Action.ACTION_SHIELD_DOWN;
-	} else if (s.equals(STRAND_ACTION_SHIELD_UP)) {
-	    action = Action.ACTION_SHIELD_UP;
-	}
-	
-	for (int i = VALUE_LENGTH; i < STRAND_LENGTH; i++) {
-	    if (getActionStrands()[num].charAt(i) == '1') {
-		delay += 0.5;
-	    }
-	}
-	
-	return new Action(action, delay);
-    }
-    
-    private static String[] newStatStrands() {
-	String[] newStrands = new String[NUM_STRANDS_STAT];
-	for (int i = 0; i < NUM_STRANDS_STAT; i++) {
-	    newStrands[i] = newStrand();
-	}
-	return newStrands;
-    }
-    
-    private static String[] newActionStrands() {
-	String[] newStrands = new String[NUM_STRANDS_ACTION];
-	for (int i = 0; i < NUM_STRANDS_ACTION; i++) {
-	    newStrands[i] = newStrand();
-	}
-	return newStrands;
-    }
-    
-    private static String newStrand() {
+    private static String newReaction() {
 	String gene = "";
 	for (int i = 0; i < STRAND_LENGTH; i++) {
 	    double rnd = Math.random() * 10;
@@ -267,57 +160,10 @@ public class Genes {
 	return gene;
     }
     
-    private int findStat(String strand, String stat) {
-	int startIndex = 0;
-	int number = 0;
-	while (startIndex+VALUE_LENGTH <= strand.length()) {
-	    if (strand.subSequence(startIndex, startIndex+VALUE_LENGTH).equals(stat)) {
-		number++;
-	    }
-	    startIndex += VALUE_LENGTH;
-	}
-	return number;
-    }
-
-    public int getHealthStat() {
-	int healthStat = 1;
-	for (int i = 0; i < getStatStrands().length; i++) {
-	    String s = getStatStrands()[i];
-	    healthStat += findStat(s,STRAND_STAT_HEALTH);
-	}
-	return healthStat;
-    }
-    
-    public int getAttackStat() {
-	int attackStat = 1;
-	for (int i = 0; i < getStatStrands().length; i++) {
-	    String s = getStatStrands()[i];
-	    attackStat += findStat(s,STRAND_STAT_ATTACK);
-	}
-	return attackStat;
-    }
-    
-    public int getDefenseStat() {
-	int defenseStat = 1;
-	for (int i = 0; i < getStatStrands().length; i++) {
-	    String s = getStatStrands()[i];
-	    defenseStat += findStat(s,STRAND_STAT_DEFENSE);
-	}
-	return defenseStat;
-    }
-    
-    public String[] getStatStrands() {
-	return statStrands;
-    }
-
-    public String[] getActionStrands() {
-	return actionStrands;
-    }
-    
-    public BufferedImage getImage(int alignment) {
+    public BufferedImage getImage() {
 	BufferedImage img = new BufferedImage(180,130,BufferedImage.TYPE_INT_ARGB);
 	Graphics g = img.getGraphics();
-	
+	/*
 	int[] columns = new int[] {10, 70, 130};
 	int titleX = 20;
 	
@@ -346,7 +192,7 @@ public class Genes {
 	g.setFont(new Font("Arial",Font.BOLD,20));
 	g.setColor(Color.BLACK);
 	g.drawString("Genetic Code",titleX,30);
-	
+	*/
 	return img;
     }
 }

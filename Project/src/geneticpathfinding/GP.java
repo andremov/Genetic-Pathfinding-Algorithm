@@ -5,17 +5,22 @@
  */
 package geneticpathfinding;
 
+import java.util.Random;
+
 /**
  *
  * @author Andrés Movilla
  */
-public class GeneticPathfinding {
+public class GP {
+    public static Random r;
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-	// TODO code application logic here
+	r = new Random();
+	
+	new Thread(new Handler()).start();
     }
     
 }
