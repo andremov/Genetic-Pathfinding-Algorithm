@@ -92,7 +92,7 @@ public class Handler implements Runnable {
     /**
      * Battle timer.
      */
-    private double battleTick;
+    private double simTick;
     /**
      * Internal battle timer.
      */
@@ -108,7 +108,7 @@ public class Handler implements Runnable {
     /**
      * Force draw.
      */
-    private final double maxBattleTick = 200;
+    private final double maxSimTick = 10000;
     /**
      * Max wait time for state transitions.
      */
@@ -121,7 +121,6 @@ public class Handler implements Runnable {
 	currentGen = 0;
 	waitTicks = 0;
 	editSetting = 0;
-	currentMap = new Map(MAP_SIZE);
 //	genInfo = new GraphInfo("Health Stat", "Attack Stat", "Defense Stat", "Strategy Length", "Wait Numbers", "Attack Numbers","Shield Up Numbers","Shield Down Numbers");
 	new Thread(new Window(this)).start();
 //	for (int i = 0; i < genInfo.trackedInfo; i++) {
@@ -130,10 +129,10 @@ public class Handler implements Runnable {
     }
 
     private void startSimulation() {
-	battleTick = 0;
+	currentMap = new Map();
+	simTick = 0;
 	for (int i = 0; i < botList.size(); i++) {
-	    botList.get(i).setX(currentMap.getStartX());
-	    botList.get(i).setY(currentMap.getStartY());
+	    botList.get(i).reset(currentMap.getStart());
 	}
 	currentState = STATE_SIMULATION;
     }
@@ -807,12 +806,22 @@ public class Handler implements Runnable {
     }
     
     private void simTick() {
-	if (battleTick > maxBattleTick) {
-//	    botList.get(battleBot1).kill();
-//	    botList.get(battleBot2).kill();
-	} else {
-	    battleTick++;
+	simTick++;
+	if (simTick > maxSimTick) {
+	    simTick = 0;
+//	} else {
 	    
+	    for (int i = 0; i < botList.size(); i++) {
+		int x = botList.get(i).getX();
+		int y = botList.get(i).getY();
+		
+		int top = currentMap.getTileID(x, y-1);
+		int down = currentMap.getTileID(x, y+1);
+		int left = currentMap.getTileID(x-1, y);
+		int right = currentMap.getTileID(x+1, y);
+		
+		botList.get(i).doAction(top, down, left, right);
+	    }
 	}
 	
     }
@@ -1048,7 +1057,10 @@ public class Handler implements Runnable {
 		g.drawImage(currentMap.getImage(), 10, 0, null);
 		for (int i = 0; i < botList.size(); i++) {
 		    BufferedImage bot = botList.get(i).getVisual();
-		    g.drawImage(bot, botList.get(i).getX()*Map.TILE_SIZE, botList.get(i).getY()*Map.TILE_SIZE, null);
+		    int x =  10+(botList.get(i).getX()*Map.TILE_SIZE);
+		    int y =  (botList.get(i).getY()*Map.TILE_SIZE);
+//		    g.drawImage(bot, botList.get(i).getX()*Map.TILE_SIZE, botList.get(i).getY()*Map.TILE_SIZE, null);
+		    g.drawImage(bot, x, y, null);
 		}
 		//</editor-fold>
 		break;
