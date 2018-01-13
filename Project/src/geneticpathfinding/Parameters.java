@@ -179,7 +179,7 @@ public class Parameters {
     
     public int lastSetting() {
 	// starts at 0.
-	return 11;
+	return 10;
     }
     
     private void calcRealNumbers() {

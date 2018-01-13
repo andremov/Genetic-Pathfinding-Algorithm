@@ -33,7 +33,7 @@ public class Handler implements Runnable {
     static final int SETTINGS_KEY_RIGHT = 3;
     static final int SETTINGS_KEY_DONE = 4;
     
-    static final int MAP_SIZE = 40;
+    static final int MAP_SIZE = 30;
     
     static Map currentMap;
     
@@ -117,7 +117,7 @@ public class Handler implements Runnable {
     
     public Handler() {
 	botList = new ArrayList<>();
-	currentState = -2;
+	currentState = -1;
 	currentGen = 0;
 	waitTicks = 0;
 	editSetting = 0;
@@ -129,8 +129,12 @@ public class Handler implements Runnable {
 //	}
     }
 
-    private void startBattle() {
+    private void startSimulation() {
 	battleTick = 0;
+	for (int i = 0; i < botList.size(); i++) {
+	    botList.get(i).setX(currentMap.getStartX());
+	    botList.get(i).setY(currentMap.getStartY());
+	}
 	currentState = STATE_SIMULATION;
     }
     
@@ -180,7 +184,7 @@ public class Handler implements Runnable {
 
 	    saveHistory();
 	    
-	    startBattle();
+	    startSimulation();
 	} else {
 	    if (creatingBot == p.getStartingPopulation()) {
 		waitTicks++;
@@ -682,7 +686,7 @@ public class Handler implements Runnable {
 	    currentGen++;
 	    waitTicks = 0;
 
-	    startBattle();
+	    startSimulation();
 	} else {
 	    if (botList.size() == p.getRealPopulation()) {
 		waitTicks++;
@@ -1041,24 +1045,12 @@ public class Handler implements Runnable {
 		break;
 	    case STATE_SIMULATION:
 		//<editor-fold desc="BATTLE">
-		g.setFont(new Font("Arial",Font.PLAIN,18));
-		g.setColor(Color.BLACK);
-		try {
-		    g.drawImage(botList.get(battleBot1).getImage(0),0,0,null);
-		    g.drawString("Bot "+(battleBot1+1)+"/"+botList.size(),180,50);
-		    g.drawImage(botList.get(battleBot2).getImage(1),350,0,null);
-		    g.drawString("Bot "+(battleBot2+1)+"/"+botList.size(),530,50);
-		} catch (Exception e) { }
-		
-		g.setFont(new Font("Arial",Font.BOLD,30));
-		g.setColor(Color.BLACK);
-		int time = (int) ((Math.floor((maxBattleTick-battleTick)*10))/10);
-		g.drawString(time+"",580,670);
-		g.drawString("Current Generation: "+(currentGen-1),5,670);
+		g.drawImage(currentMap.getImage(), 10, 0, null);
+		for (int i = 0; i < botList.size(); i++) {
+		    BufferedImage bot = botList.get(i).getVisual();
+		    g.drawImage(bot, botList.get(i).getX()*Map.TILE_SIZE, botList.get(i).getY()*Map.TILE_SIZE, null);
+		}
 		//</editor-fold>
-		break;
-	    default:
-		g.drawImage(currentMap.getImage(), 0, 0, null);
 		break;
 	}
 	    

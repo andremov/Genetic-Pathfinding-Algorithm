@@ -70,6 +70,10 @@ public class Bot {
      * Number of maps this bot has been in.
      */
     private int numberMaps;
+    /**
+     * Current bot position.
+     */
+    private int[] position;
     //</editor-fold>
     
     public Bot(int generation, int serialNumber) {
@@ -101,6 +105,22 @@ public class Bot {
     
     public int getFitness() {
 	return fitness;
+    }
+    
+    public int getX() {
+	return position[0];
+    }
+    
+    public int getY() {
+	return position[1];
+    }
+    
+    public void setX(int x) {
+	position[0] = x;
+    }
+    
+    public void setY(int y) {
+	position[1] = y;
     }
     
     public static String getModelName(int iGen, int iNum) {
@@ -144,6 +164,7 @@ public class Bot {
     
     private void init() {
 	dead = false;
+	position = new int[2];
     }
     
     public void tick(double count) {
@@ -203,6 +224,20 @@ public class Bot {
     }
     public void kill() {
 	this.dead = true;
+    }
+    
+    public BufferedImage getVisual() {
+	int size = Map.TILE_SIZE;
+	BufferedImage img = new BufferedImage(size,size,BufferedImage.TYPE_INT_ARGB);
+	Graphics g = img.getGraphics();
+	
+	g.setColor(Color.black);
+	g.fillRect(2, 2, size-4, size-4);
+	
+	g.setColor(Color.white);
+	g.fillRect(4, 4, size-8, size-8);
+	
+	return img;
     }
     
     public BufferedImage getImage(int alignment) {
