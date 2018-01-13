@@ -33,7 +33,7 @@ public class Handler implements Runnable {
     static final int SETTINGS_KEY_RIGHT = 3;
     static final int SETTINGS_KEY_DONE = 4;
     
-    static final int MAP_SIZE = 15;
+    static final int MAP_SIZE = 40;
     
     static Map currentMap;
     
@@ -856,12 +856,12 @@ public class Handler implements Runnable {
     }
     
     public BufferedImage getImage() {
-	BufferedImage img = new BufferedImage(700,700,BufferedImage.TYPE_INT_ARGB);
+	BufferedImage img = new BufferedImage(800,800,BufferedImage.TYPE_INT_ARGB);
 	Graphics g = img.getGraphics();
 	
 	g.setColor(Color.blue);
 	float waitPercent = (float) ((maxWaitTicks-waitTicks)/maxWaitTicks);
-	g.fillRect(0, 680, (int) (700*waitPercent), 20);
+	g.fillRect(0, 780, (int) (800*waitPercent), 20);
 	float processPercent;
 		
 	switch(currentState) {

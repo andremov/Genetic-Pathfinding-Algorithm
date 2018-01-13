@@ -27,7 +27,7 @@ public class Window extends JFrame implements Runnable {
     
     public Window(Handler parent) {
 	this.parent = parent;
-	setSize(708,731);
+	setSize(808,831);
 	setTitle("Simulations");
 	setResizable(false);
 	setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -41,7 +41,7 @@ public class Window extends JFrame implements Runnable {
     
     private void init() {
 	c = new Canvas();
-	c.setSize(700,700);
+	c.setSize(800,800);
 	c.setLocation(1,1);
 	c.setFocusable(false);
 	add(c);
@@ -70,7 +70,7 @@ public class Window extends JFrame implements Runnable {
 	c.createBufferStrategy(2);
 	while (true) {
 	    Graphics g = c.getBufferStrategy().getDrawGraphics();
-	    g.clearRect(0, 0, 700, 700);
+	    g.clearRect(0, 0, 800, 800);
 	    
 	    g.drawImage(parent.getImage(),0,0,null);
 	    
