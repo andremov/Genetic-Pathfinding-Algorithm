@@ -39,6 +39,10 @@ public class Bot {
      */
     private boolean dead;
     /**
+     * Is bot finished flag.
+     */
+    private boolean finished;
+    /**
      * Generation number of bot.
      */
     private final int generation;
@@ -47,6 +51,10 @@ public class Bot {
      */
     private final int serialNumber;
     /**
+     * Fitness.
+     */
+    private int fitness;
+    /**
      * Model of bot.
      */
     private final String modelName;
@@ -54,6 +62,14 @@ public class Bot {
      * Unique name assigned to bot.
      */
     private final String uniqueName;
+    /**
+     * Number of simulations this bot has participated in.
+     */
+    private int numberSimulations;
+    /**
+     * Number of maps this bot has been in.
+     */
+    private int numberMaps;
     //</editor-fold>
     
     public Bot(int generation, int serialNumber) {
@@ -74,6 +90,17 @@ public class Bot {
 //	System.out.println("Bot bred!");
 	this.modelName = Bot.getModelName(generation, serialNumber);
 	this.uniqueName = Bot.createUniqueName(generation, serialNumber);
+    }
+    
+    public void survivedSimulation() {
+	this.numberSimulations++;
+    }
+    public void survivedMap() {
+	this.numberMaps++;
+    }
+    
+    public int getFitness() {
+	return fitness;
     }
     
     public static String getModelName(int iGen, int iNum) {

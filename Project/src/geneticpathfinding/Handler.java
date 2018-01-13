@@ -19,7 +19,7 @@ public class Handler implements Runnable {
     
     static final int STATE_SETTINGS = -1;
     static final int STATE_START = 0;
-    static final int STATE_BATTLE = 1;
+    static final int STATE_SIMULATION = 1;
     static final int STATE_RANK = 2;
     static final int STATE_DELETE = 3;
     static final int STATE_BREED = 4;
@@ -34,7 +34,6 @@ public class Handler implements Runnable {
     static final int SETTINGS_KEY_DONE = 4;
     
     public static final Parameters p = new Parameters();
-    public static int numberBots;
     public static GraphInfo genInfo;
     
     //<editor-fold defaultstate="collapsed" desc="Fields">
@@ -127,12 +126,7 @@ public class Handler implements Runnable {
 
     private void startBattle() {
 	battleTick = 0;
-	battleBot1 = 0;
-	battleBot2 = 1;
-	botList.get(battleBot1).enemy = botList.get(battleBot2);
-	botList.get(battleBot2).enemy = botList.get(battleBot1);
-	numberBots = botList.size();
-	currentState = STATE_BATTLE;
+	currentState = STATE_SIMULATION;
     }
     
     public void settingsKey(int key) {
@@ -193,6 +187,7 @@ public class Handler implements Runnable {
     }
     
     private void saveHistory() {
+	/*
 	Integer[] step;
 	int amount;
 	int index;
@@ -671,7 +666,7 @@ public class Handler implements Runnable {
 	
 	genInfo.addNewMaxQuantity(step);
 	//</editor-fold>
-	
+	*/
     }
     
     private void createTick() {
@@ -703,7 +698,7 @@ public class Handler implements Runnable {
 	    if (mixBot == botList.size()-2) {
 		waitTicks++;
 	    } else {
-		int mixSwitch = AGA.r.nextInt(botList.size()-mixBot)+mixBot;
+		int mixSwitch = GP.r.nextInt(botList.size()-mixBot)+mixBot;
 		Bot temp = botList.get(mixSwitch);
 		botList.set(mixSwitch, botList.get(mixBot));
 		botList.set(mixBot, temp);
@@ -721,11 +716,8 @@ public class Handler implements Runnable {
 	    breedBot2 = 1;
 	    breedingsDone = 0;
 	    
-	    for (int i = 0; i < p.getNumberKept(); i++) {
-		botList.get(i).survivedBest();
-	    }
 	    for (int i = p.getNumberKept(); i < botList.size(); i++) {
-		botList.get(i).survivedRandomly();
+		botList.get(i).survivedSimulation();
 	    }
 	    
 	    currentState = STATE_BREED;
@@ -772,19 +764,18 @@ public class Handler implements Runnable {
 	    waitTicks++;
 	} else if (waitTicks >= maxWaitTicks) {
 	    waitTicks = 0;
-	    for (int i = 0; i < botList.size(); i++) {
-		botList.get(i).resetBattles();
-	    }
+	    
 	    mixBot = p.getNumberKept();
 	    currentState = STATE_CHECK;
 	} else {
 	    if (rankingBot < botList.size()) {
 		int best = 0;
 		int score = -1;
+		
 		for (int j = rankingBot; j < botList.size(); j++) {
-		    if (botList.get(j).getWins() > score) {
+		    if (botList.get(j).getFitness()> score) {
 			best = j;
-			score = botList.get(j).getWins();
+			score = botList.get(j).getFitness();
 		    }
 		}
 
@@ -793,59 +784,34 @@ public class Handler implements Runnable {
 		botList.set(rankingBot, temp);
 		rankingBot++;
 	    } else {
-		botList.get(0).bestGeneration();
 		waitTicks++;
 	    }
 	}
     }
     
     private void checkTick() {
-	if (botList.get(0).getBestGeneration() >= p.getEndSimulationParameter()) {
+//	if (botList.get(0).getBestGeneration() >= p.getEndSimulationParameter()) {
 	    
-	} else {
+//	} else {
 	    currentState = STATE_MIX;
-	}
+//	}
     }
     
-    private void battleTick() {
+    private void simTick() {
 	if (battleTick > maxBattleTick) {
-	    botList.get(battleBot1).kill();
-	    botList.get(battleBot2).kill();
-	}
-	if (botList.get(battleBot1).isAlive() && botList.get(battleBot2).isAlive()) {
-	    battleTick = ((battleTick*10)+1)/10;
-	    botList.get(battleBot1).tick(battleTick);
-	    botList.get(battleBot2).tick(battleTick);
+//	    botList.get(battleBot1).kill();
+//	    botList.get(battleBot2).kill();
 	} else {
-	    battleTick = 0;
+	    battleTick++;
 	    
-	    botList.get(battleBot1).tallyBattle();
-	    botList.get(battleBot2).tallyBattle();
-
-	    battleBot2++;
-	    if (battleBot2 == battleBot1) {
-		battleBot2++;
-	    }
-	    if (battleBot2 == p.getRealPopulation()) {
-		battleBot1++;
-		battleBot2 = battleBot1+1;
-	    }
-	    
-	    if (battleBot2 == p.getRealPopulation()) {
-		rankingBot = 0;
-		waitTicks = 0;
-		currentState = STATE_RANK;
-	    } else {
-		botList.get(battleBot1).newBattle(botList.get(battleBot2));
-		botList.get(battleBot2).newBattle(botList.get(battleBot1));
-	    }
 	}
+	
     }
     
     @Override
     public void run() {
 	while (true) {
-	    internalTick += currentState == STATE_BATTLE? 5 : 1;
+	    internalTick++;
 	    if (internalTick > maxInternalTick) {
 		internalTick = 0;
 		switch(currentState) {
@@ -873,8 +839,8 @@ public class Handler implements Runnable {
 		    case STATE_RANK:
 			rankTick();
 			break;
-		    case STATE_BATTLE:
-			battleTick();
+		    case STATE_SIMULATION:
+			simTick();
 			break;
 		}
 	    }
@@ -1060,15 +1026,15 @@ public class Handler implements Runnable {
 		g.drawImage(botList.get(0).getBriefImage(),175,200,null);
 		
 		g.setFont(new Font("Arial",Font.PLAIN,20));
-		g.drawString("Number of bests: ",190,300);
-		g.drawString(""+botList.get(0).getBestGeneration(),480,300);
+//		g.drawString("Number of bests: ",190,300);
+//		g.drawString(""+botList.get(0).getBestGeneration(),480,300);
 		
 		g.setFont(new Font("Arial",Font.BOLD,30));
 		g.drawString("Worst:",325,400);
 		g.drawImage(botList.get(botList.size()-1).getBriefImage(),175,420,null);
 		//</editor-fold>
 		break;
-	    case STATE_BATTLE:
+	    case STATE_SIMULATION:
 		//<editor-fold desc="BATTLE">
 		g.setFont(new Font("Arial",Font.PLAIN,18));
 		g.setColor(Color.BLACK);
