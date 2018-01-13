@@ -7,7 +7,6 @@ package geneticpathfinding;
 
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import javax.imageio.ImageIO;
@@ -42,9 +41,26 @@ public class Map {
     public static final int PERCENT_WATER = 40;
     public static final int PERCENT_HOLE = 35;
     
-    public static int TILE_SIZE;
+    public static final int[] EFFECTS = {
+	0, 0, 0, 0,
+	1, 1, 2, 2,
+	3
+    };
+    
+    public static final int EFFECT_NOTHING = 0;
+    public static final int EFFECT_BLOCKED = 1;
+    public static final int EFFECT_DEATH = 2;
+    public static final int EFFECT_SLOW = 3;
+    
+    private static final int MAP_SIZE = Handler.MAP_SIZE;
     
     private static BufferedImage[] tileImages;
+    
+//    public static final String[] tileBinaries = {
+//	"0000", "0001", "0010", 
+//	"0011", "0100", "0101", 
+//	"0110", "0111", "1000"
+//    };
     
     public static final Color[] tileColors = {
 	GP.color(27.6f, 60.7f, 95.7f), GP.color(0f, 0f, 66.3f), GP.color(147.6f, 60.7f, 95.7f),
@@ -56,26 +72,24 @@ public class Map {
 	"dirt", "tile", "moss", "grass", "wall", "rocks", "lava", "hole", "water"
     };
     
-    private final int[] start;
-    private final int[] finish;
+    private int[] start;
+    private int[] finish;
     
-    private final float tileSize;
+    public static final int TILE_SIZE = 800/Handler.MAP_SIZE;
     
     private int[][] tiles;
     
-    public Map(int size) {
-	this.TILE_SIZE = size;
-	start = new int[] { 1, 1 };
-	finish = new int[] { size-1, size-1 };
+    public Map() {
 	
 	while (true) {
+	    start = new int[] { 1, 1 };
+	    finish = new int[] { MAP_SIZE-1, MAP_SIZE-1 };
 	    try {
 		tiles = generateMap();
 		break;
 	    } catch (Exception e) { }
 	}
 	
-	tileSize = 800/size;
 	try {
 	    tileImages = new BufferedImage[tileText.length];
 	    for (int i = 0; i < tileText.length; i++) {
@@ -84,6 +98,16 @@ public class Map {
 	} catch (Exception e) { }
     }
     
+//    public static int getTileID(String binary) {
+//	int id = 0;
+//	for (int i = 0; i < tileBinaries.length; i++) {
+//	    if (tileBinaries[i].equals(binary)) {
+//		id = i;
+//	    }
+//	}
+//	return id;
+//    }
+
     public BufferedImage getImage() {
 	BufferedImage img = new BufferedImage(800,800,BufferedImage.TYPE_INT_ARGB);
 	Graphics g = img.getGraphics();
@@ -93,10 +117,8 @@ public class Map {
 		int tileID = tiles[y][x];
 		
 		try {
-		    g.drawImage(tileImages[tileID], (int)(x*tileSize), (int)(y*tileSize), (int) tileSize, (int) tileSize, null);
-		} catch (Exception e) {
-		    e.printStackTrace();
-		}
+		    g.drawImage(tileImages[tileID], (int)(x*TILE_SIZE), (int)(y*TILE_SIZE), (int) TILE_SIZE, (int) TILE_SIZE, null);
+		} catch (Exception e) { }
 		
 	    }
 	}
@@ -104,17 +126,21 @@ public class Map {
 	return img;
     }
     
-    public int[][] generateMap() {
-	int[][] finalMap = new int[TILE_SIZE][TILE_SIZE];
+    public int getTileID(int x, int y) {
+	return tiles[y][x];
+    }
+    
+    public int[][] generateMap() throws Exception {
+	int[][] finalMap = new int[MAP_SIZE][MAP_SIZE];
 	
 	int[][] layer = generateWalls();
 	
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 5; i++) {
 	    layer = smoothMap(layer, 4);
 	}
 	
-	for (int y = 0; y < TILE_SIZE; y++) {
-	    for (int x = 0; x < TILE_SIZE; x++) {
+	for (int y = 0; y < MAP_SIZE; y++) {
+	    for (int x = 0; x < MAP_SIZE; x++) {
 		finalMap[y][x] = layer[y][x]*TILE_WALL;
 	    }
 	}
@@ -122,8 +148,8 @@ public class Map {
 	layer = generateLayer(PERCENT_WATER);
 	layer = smoothMap(layer, 4);
 	
-	for (int y = 0; y < TILE_SIZE; y++) {
-	    for (int x = 0; x < TILE_SIZE; x++) {
+	for (int y = 0; y < MAP_SIZE; y++) {
+	    for (int x = 0; x < MAP_SIZE; x++) {
 		if (finalMap[y][x] == 0) {
 		    finalMap[y][x] = layer[y][x]*TILE_WATER;
 		}
@@ -133,8 +159,8 @@ public class Map {
 	layer = generateLayer(PERCENT_LAVA);
 	layer = smoothMap(layer, 4);
 	
-	for (int y = 0; y < TILE_SIZE; y++) {
-	    for (int x = 0; x < TILE_SIZE; x++) {
+	for (int y = 0; y < MAP_SIZE; y++) {
+	    for (int x = 0; x < MAP_SIZE; x++) {
 		if (finalMap[y][x] == 0) {
 		    finalMap[y][x] = layer[y][x]*TILE_LAVA;
 		} else if (finalMap[y][x] == TILE_WATER && layer[y][x] == 1) {
@@ -161,7 +187,7 @@ public class Map {
 	}
 	finalMap[finish[1]][finish[0]] = TILE_PATH;
 	
-	int[] tracePath = start;
+	int[] tracePath = new int[] {start[0],start[1]};
 	while (tracePath[0] != finish[0] || tracePath[1] != finish[1]) {
 	    if (tracePath[0] != finish[0]) {
 		if (finalMap[tracePath[1]][tracePath[0]+1] == 0) {
@@ -169,18 +195,22 @@ public class Map {
 		} else {
 		    tracePath[1]++;
 		}
-		finalMap[tracePath[1]][tracePath[0]] = TILE_PATH;
 	    } else if (tracePath[1] != finish[1]) {
 		tracePath[1]++;
-		finalMap[tracePath[1]][tracePath[0]] = TILE_PATH;
 	    }
+	    
+//	    if (finalMap[tracePath[1]][tracePath[0]] == 0) {
+		finalMap[tracePath[1]][tracePath[0]] = TILE_PATH;
+//	    } else {
+//		throw new Exception("Woops.");
+//	    }
 	}
 	
 	layer = generateLayer(PERCENT_GRASS);
 	layer = smoothMap(layer, 4);
 	
-	for (int y = 0; y < TILE_SIZE; y++) {
-	    for (int x = 0; x < TILE_SIZE; x++) {
+	for (int y = 0; y < MAP_SIZE; y++) {
+	    for (int x = 0; x < MAP_SIZE; x++) {
 		if (finalMap[y][x] == 0) {
 		    finalMap[y][x] = layer[y][x]*TILE_MOSS;
 		}
@@ -189,8 +219,8 @@ public class Map {
 	
 	layer = smoothMap(layer, 6);
 	
-	for (int y = 0; y < TILE_SIZE; y++) {
-	    for (int x = 0; x < TILE_SIZE; x++) {
+	for (int y = 0; y < MAP_SIZE; y++) {
+	    for (int x = 0; x < MAP_SIZE; x++) {
 		if (finalMap[y][x] == TILE_MOSS && layer[y][x] == 1) {
 		    finalMap[y][x] = TILE_GRASS;
 		}
@@ -200,8 +230,8 @@ public class Map {
 	layer = generateLayer(PERCENT_HOLE);
 	layer = smoothMap(layer, 4);
 	
-	for (int y = 0; y < TILE_SIZE; y++) {
-	    for (int x = 0; x < TILE_SIZE; x++) {
+	for (int y = 0; y < MAP_SIZE; y++) {
+	    for (int x = 0; x < MAP_SIZE; x++) {
 		if (finalMap[y][x] == 0) {
 		    finalMap[y][x] = layer[y][x]*TILE_HOLE;
 		}
@@ -212,10 +242,10 @@ public class Map {
     }
     
     public int[][] generateLayer(int percent) {
-	int[][] walls = new int[TILE_SIZE][TILE_SIZE];
+	int[][] walls = new int[MAP_SIZE][MAP_SIZE];
 	
-	for (int y = 0; y < TILE_SIZE; y++) {
-	    for (int x = 0; x < TILE_SIZE; x++) {
+	for (int y = 0; y < MAP_SIZE; y++) {
+	    for (int x = 0; x < MAP_SIZE; x++) {
 		walls[y][x] = GP.r.nextInt(100) < percent? 1 : 0;
 	    }
 	}
@@ -224,11 +254,11 @@ public class Map {
     }
     
     public int[][] generateWalls() {
-	int[][] walls = new int[TILE_SIZE][TILE_SIZE];
+	int[][] walls = new int[MAP_SIZE][MAP_SIZE];
 	
-	for (int y = 0; y < TILE_SIZE; y++) {
-	    for (int x = 0; x < TILE_SIZE; x++) {    
-		if (x == 0 || x == TILE_SIZE-1 || y == 0 || y == TILE_SIZE-1 ) {
+	for (int y = 0; y < MAP_SIZE; y++) {
+	    for (int x = 0; x < MAP_SIZE; x++) {    
+		if (x == 0 || x == MAP_SIZE-1 || y == 0 || y == MAP_SIZE-1 ) {
 		    walls[y][x] = 1;
 		} else {
 		    walls[y][x] = GP.r.nextInt(100) < PERCENT_WALL? 1 : 0;
@@ -242,8 +272,8 @@ public class Map {
     public int[][] smoothMap(int[][] map, int threshold) {
 	int[][] walls = map;
 	
-	for (int y = 0; y < TILE_SIZE; y++) {
-	    for (int x = 0; x < TILE_SIZE; x++) {
+	for (int y = 0; y < MAP_SIZE; y++) {
+	    for (int x = 0; x < MAP_SIZE; x++) {
 		int count = surroundingTiles(walls, x, y);
 		if (count > threshold) {
 		    walls[y][x] = 1;
@@ -261,7 +291,7 @@ public class Map {
 	
 	for (int y = searchY-1; y <= searchY+1; y++) {
 	    for (int x = searchX-1; x <= searchX+1; x++) {
-		if (x >= 0 && x <= TILE_SIZE-1 && y >= 0 && y <= TILE_SIZE-1) {
+		if (x >= 0 && x <= MAP_SIZE-1 && y >= 0 && y <= MAP_SIZE-1) {
 		    if (x != searchX || y != searchY) {
 			count += map[y][x];
 		    }
@@ -274,19 +304,11 @@ public class Map {
 	return count;
     }
 
-    public int getStartX() {
-	return start[0];
+    public int[] getStart() {
+	return start;
     }
     
-    public int getFinishX() {
-	return finish[0];
-    }
-    
-    public int getStartY() {
-	return start[1];
-    }
-    
-    public int getFinishY() {
-	return finish[1];
+    public int[] getFinish() {
+	return finish;
     }
 }
