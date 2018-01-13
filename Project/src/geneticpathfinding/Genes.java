@@ -5,8 +5,6 @@
  */
 package geneticpathfinding;
 
-import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -18,53 +16,44 @@ import java.util.ArrayList;
 public class Genes {
     
     
-    public static final int STRAND_LENGTH = 3;
+    public static final int STRAND_LENGTH = 4;
     
     public static final int NUM_STRANDS = 10;
     
     /**
      * Strands of genes.
      */
-    private String[] identities;
     private String[] reactions;
     
     public Genes() {
-	identities = new String[10];
-	createIdentities();
 	reactions = newReactions();
+    }
+    
+    public Genes(String[] reactions) {
+	this.reactions = reactions;
+    }
+    
+    public int getWorth(int strandNumber) {
+	String strand = this.reactions[strandNumber];
+	int worth = 0;
+	int e = 1;
+	for (int i = STRAND_LENGTH-1; i >= 0; i--) {
+	    worth += (Integer.parseInt(strand.charAt(i)+"")*e);
+	    e *= 2;
+	}
+	return worth;
     }
     
     public String[] getReactions() {
 	return reactions;
     }
     
-    public String[] getIdentities() {
-	return identities;
-    }
-    
-    private void createIdentities() {
-	int numIdentities = 0;
-	for (int i = 0; i < 2; i++) {
-	    for (int j = 0; j < 2; j++) {
-		for (int k = 0; k < 2; k++) {
-		    this.identities[numIdentities] = i+""+j+""+k;
-		    numIdentities++;
-		}
-	    }
-	}
-    }
-    
     private String[] newReactions() {
 	String[] r = new String[10];
-	for (int i = 0; i < STRAND_LENGTH; i++) {
+	for (int i = 0; i < NUM_STRANDS; i++) {
 	    r[i] = newReaction();
 	}
 	return r;
-    }
-    
-    public Genes(String[] identities, String[] reactions) {
-	this.identities = identities;
-	this.reactions = reactions;
     }
     
     public static Genes mutateStrand(Genes original) {
@@ -75,7 +64,7 @@ public class Genes {
 	
 	reactions[chosenStrand] = newReaction();
 	
-	return new Genes(original.getIdentities(), reactions);
+	return new Genes(reactions);
     }
     
     public static Genes mutateBit(Genes original) {
@@ -91,7 +80,7 @@ public class Genes {
 	char newBit = inverse[Integer.parseInt(""+strand.charAt(chosenBit))];
 	reactions[chosenStrand] = strand.substring(0, chosenBit) + newBit + strand.substring(chosenBit+1);
 	
-	return new Genes(original.getIdentities(), reactions);
+	return new Genes(reactions);
     }
     
     private static String[] mixStrands(String[] father, String[] mother) {
@@ -113,7 +102,6 @@ public class Genes {
     }
     
     public static ArrayList<Genes> breed(Genes father, Genes mother) {
-	String[] identities = father.getIdentities();
 	
 	String[] fatherReactions = father.getReactions();
 	String[] motherReactions = mother.getReactions();
@@ -135,15 +123,15 @@ public class Genes {
 	
 	if (Handler.p.getDirectBreed()) {
 	    //MIXED ALL
-	    results.add(new Genes(identities, mixedReactions));
+	    results.add(new Genes(mixedReactions));
 	}
 	
 	if (Handler.p.getBreedBitMutations()) {
-	    results.add(Genes.mutateBit(new Genes(identities, mixedReactions)));
+	    results.add(Genes.mutateBit(new Genes(mixedReactions)));
 	}
 	
 	if (Handler.p.getBreedStrandMutations()) {
-	    results.add(Genes.mutateStrand(new Genes(identities, mixedReactions)));
+	    results.add(Genes.mutateStrand(new Genes(mixedReactions)));
 	}
 	
 	return results;
