@@ -33,6 +33,10 @@ public class Handler implements Runnable {
     static final int SETTINGS_KEY_RIGHT = 3;
     static final int SETTINGS_KEY_DONE = 4;
     
+    static final int MAP_SIZE = 15;
+    
+    static Map currentMap;
+    
     public static final Parameters p = new Parameters();
     public static GraphInfo genInfo;
     
@@ -113,10 +117,11 @@ public class Handler implements Runnable {
     
     public Handler() {
 	botList = new ArrayList<>();
-	currentState = -1;
+	currentState = -2;
 	currentGen = 0;
 	waitTicks = 0;
 	editSetting = 0;
+	currentMap = new Map();
 //	genInfo = new GraphInfo("Health Stat", "Attack Stat", "Defense Stat", "Strategy Length", "Wait Numbers", "Attack Numbers","Shield Up Numbers","Shield Down Numbers");
 	new Thread(new Window(this)).start();
 //	for (int i = 0; i < genInfo.trackedInfo; i++) {
@@ -1051,6 +1056,9 @@ public class Handler implements Runnable {
 		g.drawString(time+"",580,670);
 		g.drawString("Current Generation: "+(currentGen-1),5,670);
 		//</editor-fold>
+		break;
+	    default:
+		g.drawImage(currentMap.getImage(), 0, 0, null);
 		break;
 	}
 	    
