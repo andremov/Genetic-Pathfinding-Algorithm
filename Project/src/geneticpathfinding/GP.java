@@ -23,4 +23,14 @@ public class GP {
 	new Thread(new Handler()).start();
     }
     
+    /**
+     * devuelve el color dado por parametros en HSB
+     * @param h
+     * @param s
+     * @param b
+     * @return 
+     */
+    public static java.awt.Color color(double h, double s, double b) {
+	return java.awt.Color.getHSBColor((float)(h/360f),(float)(s/100f),(float)(b/100f));
+    }
 }
