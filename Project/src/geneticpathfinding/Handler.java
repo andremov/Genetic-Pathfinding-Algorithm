@@ -121,7 +121,7 @@ public class Handler implements Runnable {
 	currentGen = 0;
 	waitTicks = 0;
 	editSetting = 0;
-	currentMap = new Map();
+	currentMap = new Map(MAP_SIZE);
 //	genInfo = new GraphInfo("Health Stat", "Attack Stat", "Defense Stat", "Strategy Length", "Wait Numbers", "Attack Numbers","Shield Up Numbers","Shield Down Numbers");
 	new Thread(new Window(this)).start();
 //	for (int i = 0; i < genInfo.trackedInfo; i++) {
