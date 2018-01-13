@@ -39,6 +39,14 @@ public class Bot {
      */
     private boolean dead;
     /**
+     * Is bot frozen in place flag.
+     */
+    private boolean frozen;
+    /**
+     * Is bot stuck flag.
+     */
+    private boolean stuck;
+    /**
      * Is bot finished flag.
      */
     private boolean finished;
@@ -74,6 +82,10 @@ public class Bot {
      * Current bot position.
      */
     private int[] position;
+    /**
+     * Map course history.
+     */
+    private boolean[][] history;
     //</editor-fold>
     
     public Bot(int generation, int serialNumber) {
@@ -99,6 +111,7 @@ public class Bot {
     public void survivedSimulation() {
 	this.numberSimulations++;
     }
+    
     public void survivedMap() {
 	this.numberMaps++;
     }
@@ -115,12 +128,9 @@ public class Bot {
 	return position[1];
     }
     
-    public void setX(int x) {
-	position[0] = x;
-    }
-    
-    public void setY(int y) {
-	position[1] = y;
+    public void reset(int[] start) {
+	position = new int[] {start[0], start[1]};
+	history = new boolean[Handler.MAP_SIZE][Handler.MAP_SIZE];
     }
     
     public static String getModelName(int iGen, int iNum) {
@@ -165,54 +175,66 @@ public class Bot {
     private void init() {
 	dead = false;
 	position = new int[2];
+	history = new boolean[Handler.MAP_SIZE][Handler.MAP_SIZE];
     }
     
-    public void tick(double count) {
-	if (!dead) {
-	    /*
-	    attackCooldown += recoverySliver;
-	    if (currentShield == 0) {
-		shieldCooldown += recoverySliver;
+    public void doAction(int top, int down, int left, int right) {
+	if (!dead && !stuck) {
+	    if (!frozen) {
+		int topWorth = genes.getWorth(top);
+		int downWorth = genes.getWorth(down);
+		int leftWorth = genes.getWorth(left);
+		int rightWorth = genes.getWorth(right);
+		
+		int x = position[0];
+		int y = position[1];
+		
+		history[position[1]][position[0]] = true;
+		
+		if (topWorth >= downWorth && topWorth >= leftWorth && topWorth >= rightWorth) {
+		    if (Map.EFFECTS[top] != Map.EFFECT_BLOCKED && !history[position[1]-1][position[0]]) {
+			position[1]--;
+			results(top);
+		    }
+		}
+		
+		if (downWorth >= topWorth && downWorth >= leftWorth && downWorth >= rightWorth) {
+		    if (Map.EFFECTS[down] != Map.EFFECT_BLOCKED && !history[position[1]+1][position[0]]) {
+			position[1]++;
+			results(down);
+		    }
+		}
+		
+		if (leftWorth >= downWorth && leftWorth >= topWorth && leftWorth >= rightWorth) {
+		    if (Map.EFFECTS[left] != Map.EFFECT_BLOCKED && !history[position[1]][position[0]-1]) {
+			position[0]--;
+			results(left);
+		    }
+		}
+		
+		if (rightWorth >= downWorth && rightWorth >= topWorth && rightWorth >= leftWorth) {
+		    if (Map.EFFECTS[right] != Map.EFFECT_BLOCKED && !history[position[1]][position[0]+1]) {
+			position[0]++;
+			results(right);
+		    }
+		}
+		
+		if (position[0] == x && position[1] == y) {
+		    stuck = true;
+		}
+		
 	    } else {
-		shieldCooldown -= recoverySliver;
+		frozen = false;
 	    }
-	    if (shieldCooldown < 0) {
-		currentShield = 0;
-	    }
-	    if (shieldCooldown > 1) {
-		shieldCooldown = 1;
-	    }
-	    if (attackCooldown > 1) {
-		attackCooldown = 1;
-	    }
-	    if (count >= getStrategy().getNextActionTime()) {
-		doAction(getStrategy().nextAction());
-	    }
-	    */
 	}
     }
     
-    private void doAction() {
-	/*
-	switch(actionCode) {
-	    case Action.ACTION_ATTACK:
-		float damage = actionAttack();
-//		System.out.println("Attacking for "+damage+"!");
-		enemy.receiveDamage(damage);
-		break;
-	    case Action.ACTION_SHIELD_DOWN:
-//		System.out.println("Shield off!");
-		actionShieldDown();
-		break;
-	    case Action.ACTION_SHIELD_UP:
-//		System.out.println("Shielding!");
-		actionShieldUp();
-		break;
-	    default:
-//		System.out.println("Harden!");
-		break;
+    private void results(int current) {
+	if (Map.EFFECTS[current] == Map.EFFECT_SLOW) {
+	    frozen = true;
+	} else if (Map.EFFECTS[current] == Map.EFFECT_DEATH) {
+	    dead = true;
 	}
-	*/
     }
     
     public Genes getGenes() {
@@ -222,6 +244,7 @@ public class Bot {
     public boolean isAlive() {
 	return !dead;
     }
+    
     public void kill() {
 	this.dead = true;
     }
@@ -234,8 +257,16 @@ public class Bot {
 	g.setColor(Color.black);
 	g.fillRect(2, 2, size-4, size-4);
 	
-	g.setColor(Color.white);
-	g.fillRect(4, 4, size-8, size-8);
+	if (!dead) {
+	    if (frozen) {
+	      g.setColor(Color.blue);
+	    } else if (stuck) {
+	      g.setColor(Color.yellow);
+	    } else {
+	      g.setColor(Color.white);
+	    }
+	    g.fillRect(4, 4, size-8, size-8);
+	}
 	
 	return img;
     }
