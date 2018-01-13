@@ -120,7 +120,8 @@ public class Bot {
     }
     
     public void tick(double count) {
-	if (!dead && !enemy.dead) {
+	if (!dead) {
+	    /*
 	    attackCooldown += recoverySliver;
 	    if (currentShield == 0) {
 		shieldCooldown += recoverySliver;
@@ -139,10 +140,12 @@ public class Bot {
 	    if (count >= getStrategy().getNextActionTime()) {
 		doAction(getStrategy().nextAction());
 	    }
+	    */
 	}
     }
     
-    private void doAction(int actionCode) {
+    private void doAction() {
+	/*
 	switch(actionCode) {
 	    case Action.ACTION_ATTACK:
 		float damage = actionAttack();
@@ -161,6 +164,7 @@ public class Bot {
 //		System.out.println("Harden!");
 		break;
 	}
+	*/
     }
     
     public Genes getGenes() {

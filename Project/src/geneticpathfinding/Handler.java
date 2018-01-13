@@ -118,11 +118,11 @@ public class Handler implements Runnable {
 	currentGen = 0;
 	waitTicks = 0;
 	editSetting = 0;
-	genInfo = new GraphInfo("Health Stat", "Attack Stat", "Defense Stat", "Strategy Length", "Wait Numbers", "Attack Numbers","Shield Up Numbers","Shield Down Numbers");
+//	genInfo = new GraphInfo("Health Stat", "Attack Stat", "Defense Stat", "Strategy Length", "Wait Numbers", "Attack Numbers","Shield Up Numbers","Shield Down Numbers");
 	new Thread(new Window(this)).start();
-	for (int i = 0; i < genInfo.trackedInfo; i++) {
-	    new Thread(new GraphWindow(i)).start();
-	}
+//	for (int i = 0; i < genInfo.trackedInfo; i++) {
+//	    new Thread(new GraphWindow(i)).start();
+//	}
     }
 
     private void startBattle() {

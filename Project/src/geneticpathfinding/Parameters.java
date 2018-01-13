@@ -15,20 +15,15 @@ public class Parameters {
     private final static int POPULATION_TICK = 10;
     
     private int singleBitMutations;
-    private int singleSpecificBitMutations;
     private int singleStrandMutations;
-    private int singleSpecificStrandMutations;
-    private int singleBlockMutations;
-    private int breedForceKeep;
-    private int breedMakeNew;
     private int directBreed;
     private int breedBitMutations;
     private int breedStrandMutations;
-    private int breedSpecificBitMutations;
-    private int breedSpecificStrandMutations;
+    
     private float percentKept;
     private float percentRandom;
     private float percentNew;
+    
     private int startingPopulation;
     private int breedsPerPair;
     private int endSimulationParameter;
@@ -44,18 +39,11 @@ public class Parameters {
 	this.directBreed = 0;
 	this.breedBitMutations = 1;
 	this.breedStrandMutations = 0;
-	this.breedSpecificBitMutations = 0;
-	this.breedSpecificStrandMutations = 0;
 	this.percentKept = 0.1f;
 	this.percentRandom = 0.1f;
 	this.percentNew = 0.1f;
 	this.startingPopulation = 200;
-	this.breedMakeNew = 0;
-	this.breedForceKeep = 0;
-	this.singleBlockMutations = 0;
-	this.singleSpecificStrandMutations = 0;
 	this.singleStrandMutations = 0;
-	this.singleSpecificBitMutations = 0;
 	this.singleBitMutations = 0;
 	this.breedsPerPair = 1;
 	this.endSimulationParameter = 5;
@@ -94,33 +82,12 @@ public class Parameters {
 		this.breedStrandMutations = (breedStrandMutations+change)%2;
 		break;
 	    case 8:
-		this.breedSpecificBitMutations = (breedSpecificBitMutations+change)%2;
-		break;
-	    case 9:
-		this.breedSpecificStrandMutations = (breedSpecificStrandMutations+change)%2;
-		break;
-	    case 10:
-		this.breedMakeNew = (this.breedMakeNew+change)%2;
-		break;
-	    case 11:
-		this.breedForceKeep = (this.breedForceKeep+change)%2;
-		break;
-	    case 12:
-		this.singleBlockMutations = (this.singleBlockMutations+change)%2;
-		break;
-	    case 13:
-		this.singleSpecificStrandMutations = (this.singleSpecificStrandMutations+change)%2;
-		break;
-	    case 14:
 		this.singleStrandMutations = (this.singleStrandMutations+change)%2;
 		break;
-	    case 15:
-		this.singleSpecificBitMutations = (this.singleSpecificBitMutations+change)%2;
-		break;
-	    case 16:
+	    case 9:
 		this.singleBitMutations = (this.singleBitMutations+change)%2;
 		break;
-	    case 17:
+	    case 10:
 		this.endSimulationParameter = (this.getEndSimulationParameter()+change);
 		if (this.getEndSimulationParameter() <= 0) {
 		    this.endSimulationParameter = 1;
@@ -158,33 +125,12 @@ public class Parameters {
 		obj = breedStrandMutations == 1;
 		break;
 	    case 8:
-		obj = breedSpecificBitMutations == 1;
-		break;
-	    case 9:
-		obj = breedSpecificStrandMutations == 1;
-		break;
-	    case 10:
-		obj = this.breedMakeNew == 1;
-		break;
-	    case 11:
-		obj = this.breedForceKeep == 1;
-		break;
-	    case 12:
-		obj = this.singleBlockMutations == 1;
-		break;
-	    case 13:
-		obj = this.singleSpecificStrandMutations == 1;
-		break;
-	    case 14:
 		obj = this.singleStrandMutations == 1;
 		break;
-	    case 15:
-		obj = this.singleSpecificBitMutations == 1;
-		break;
-	    case 16:
+	    case 9:
 		obj = this.singleBitMutations == 1;
 		break;
-	    case 17:
+	    case 10:
 		obj = this.getEndSimulationParameter();
 		break;
 	}
@@ -219,33 +165,12 @@ public class Parameters {
 		name = "Mutate offspring by strands";
 		break;
 	    case 8:
-		name = "Mutate specific offspring bits";
-		break;
-	    case 9:
-		name = "Mutate specific offspring strands";
-		break;
-	    case 10:
-		name = "Artificial offspring blocks";
-		break;
-	    case 11:
-		name = "Offspring inherit blocks";
-		break;
-	    case 12:
-		name = "Artificial clone blocks";
-		break;
-	    case 13:
-		name = "Mutate specific clone strands";
-		break;
-	    case 14:
 		name = "Mutate clone strands";
 		break;
-	    case 15:
-		name = "Mutate specific clone bits";
-		break;
-	    case 16:
+	    case 9:
 		name = "Mutate clone bits";
 		break;
-	    case 17:
+	    case 10:
 		name = "End simulation parameter";
 		break;
 	}
@@ -254,14 +179,12 @@ public class Parameters {
     
     public int lastSetting() {
 	// starts at 0.
-	return 17;
+	return 11;
     }
     
     private void calcRealNumbers() {
-	this.breedOffspring = (singleBitMutations*2)+(singleSpecificBitMutations*4)+
-	    (singleStrandMutations*2)+(singleSpecificStrandMutations*4)+(singleBlockMutations*4)+
-	    (breedForceKeep*4)+(breedMakeNew*2)+(directBreed* 1)+(breedBitMutations*1)+
-	    (breedStrandMutations*1)+(breedSpecificBitMutations*1)+(breedSpecificStrandMutations*2);
+	this.breedOffspring = (singleBitMutations*2)+(singleStrandMutations*2)+
+	    (directBreed* 1)+(breedBitMutations*1)+(breedStrandMutations*1);
 		    
 	this.numberKept = (int)(startingPopulation * percentKept);
 	this.numberRandom = (int)(startingPopulation * percentRandom);
@@ -292,45 +215,10 @@ public class Parameters {
     }
 
     /**
-     * @return the singleSpecificBitMutations
-     */
-    public boolean getSingleSpecificBitMutations() {
-	return singleSpecificBitMutations == 1;
-    }
-
-    /**
      * @return the singleStrandMutations
      */
     public boolean getSingleStrandMutations() {
 	return singleStrandMutations == 1;
-    }
-
-    /**
-     * @return the singleSpecificStrandMutations
-     */
-    public boolean getSingleSpecificStrandMutations() {
-	return singleSpecificStrandMutations == 1;
-    }
-
-    /**
-     * @return the singleBlockMutations
-     */
-    public boolean getSingleBlockMutations() {
-	return singleBlockMutations == 1;
-    }
-
-    /**
-     * @return the breedForceKeep
-     */
-    public boolean getBreedForceKeep() {
-	return breedForceKeep == 1;
-    }
-
-    /**
-     * @return the breedMakeNew
-     */
-    public boolean getBreedMakeNew() {
-	return breedMakeNew == 1;
     }
 
     /**
@@ -387,20 +275,6 @@ public class Parameters {
      */
     public boolean getBreedStrandMutations() {
 	return breedStrandMutations == 1;
-    }
-
-    /**
-     * @return the breedSpecificBitMutations
-     */
-    public boolean getBreedSpecificBitMutations() {
-	return breedSpecificBitMutations == 1;
-    }
-
-    /**
-     * @return the breedSpecificStrandMutations
-     */
-    public boolean getBreedSpecificStrandMutations() {
-	return breedSpecificStrandMutations == 1;
     }
 
     /**
