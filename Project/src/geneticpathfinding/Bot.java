@@ -15,13 +15,6 @@ import java.awt.image.BufferedImage;
  * @author Andrés Movilla
  */
 public class Bot {
-
-    /**
-     * @return the strategy
-     */
-    public Strategy getStrategy() {
-	return strategy;
-    }
     
     public static final String[] COLORS = { 
 	"Red", "Green", "Blue", "Orange", "Purple", "Cyan", "Gold", "Black", "White", "Brown"
@@ -42,94 +35,9 @@ public class Bot {
      */
     private final Genes genes;
     /**
-     * Determines hit points of bot.
-     */
-    private int statHealth;
-    /**
-     * Determines attack recovery time of bot.
-     */
-    private int statAttack;
-    /**
-     * Determines defense recovery time of bot.
-     */
-    private int statDefense;
-    /**
-     * Amount to recover for attack and shield per tick.
-     */
-    private final static float recoverySliver = 0.015f;
-    /**
-     * Amount of hit points of bot.
-     * Goes from 0 to maxHitPoints.
-     * If 0 is reached, bot dies.
-     */
-    private float hitPoints;
-    /**
-     * Amount of maximum hit points of bot.
-     */
-    private float maxHitPoints;
-    /**
-     * Amount of hit points to deduct from opponent bot.
-     */
-    private float attackValue;
-    /**
-     * Multiplier to reduce damage received when a full shield is up.
-     */
-    private float shieldDefense;
-    /**
      * Is bot dead flag.
      */
     private boolean dead;
-    /**
-     * Effectiveness of next attack;
-     * Goes from 0.0 to 1.0.
-     * Multiplier applied to attackValue.
-     */
-    private float attackCooldown;
-    /**
-     * Effectiveness of next shield.
-     * Goes from 0.0 to 1.0.
-     * Multiplier saved on currentShield when shield is activated.
-     */
-    private float shieldCooldown;
-    /**
-     * Effectiveness of current shield.
-     */
-    private float currentShield;
-    /**
-     * Amount of shield to remove when hit.
-     */
-    private final static float shieldPenalty = 0.2f;
-    /**
-     * Penalty for attacking with the shield up.
-     */
-    private final static float shieldAttackPenaly = 1.2f;
-    
-    /**
-     * Number of battles the bot has been involved in.
-     */
-    private int battlesFought;
-    /**
-     * Number of battles the bot has won.
-     */
-    private int battlesWon;
-    
-    /**
-     * Complete number of battles the bot has been involved in.
-     */
-    private int totalBattlesFought;
-    /**
-     * Complete number of battles the bot has won.
-     */
-    private int totalBattlesWon;
-    
-    /**
-     * Current bot strategy.
-     */
-    private Strategy strategy;
-    /**
-     * Enemy engaged in combat.
-     */
-    public Bot enemy;
     /**
      * Generation number of bot.
      */
@@ -146,28 +54,12 @@ public class Bot {
      * Unique name assigned to bot.
      */
     private final String uniqueName;
-    /**
-     * Number of generations this bot has been best.
-     */
-    private int bestGeneration;
-    /**
-     * Number of generations this bot has survived by being best.
-     */
-    private int surviveBestGeneration;
-    /**
-     * Number of generations this bot has survived randomly.
-     */
-    private int surviveRandomGeneration;
-    /**
-     * Number of generations this bot has aced.
-     */
-    private int aceGeneration;
     //</editor-fold>
     
     public Bot(int generation, int serialNumber) {
 	this.generation = generation;
 	this.serialNumber = serialNumber;
-	genes = new Genes();
+	this.genes = new Genes();
 	init();
 //	System.out.println("Bot created!");
 	this.modelName = Bot.getModelName(generation, serialNumber);
@@ -224,78 +116,7 @@ public class Bot {
     }
     
     private void init() {
-	statHealth = genes.getHealthStat();
-	statAttack = genes.getAttackStat();
-	statDefense = genes.getDefenseStat();
-	
-	attackCooldown = 1;
-	shieldCooldown = 1;
-	currentShield = 0;
-	
-	bestGeneration = 0;
-	surviveBestGeneration = 0;
-	aceGeneration = 0;
-	surviveRandomGeneration = 0;
-	
 	dead = false;
-	
-	strategy = new Strategy(genes);
-    
-	battlesWon = 0;
-	battlesFought = 0;
-	
-	createStats();
-    }
-    
-    public void survivedBest() {
-	this.surviveBestGeneration++;
-    }
-    
-    public void survivedRandomly() {
-	this.surviveRandomGeneration++;
-    }
-    
-    public void bestGeneration() {
-	this.bestGeneration++;
-	if (this.battlesFought == this.battlesWon) {
-	    this.aceGeneration++;
-	}
-    }
-    
-    private void createStats() {
-	hitPoints = 5 + (getStatHealth() * 10);
-	maxHitPoints = 5 + (getStatHealth() * 10);
-	attackValue = getStatAttack() * 3;
-	shieldDefense = getStatDefense() * 2;
-    }
-    
-    public float actionAttack() {
-	float damage = attackValue*attackCooldown*(1-(currentShield*shieldAttackPenaly));
-	attackCooldown = 0;
-	return damage;
-    }
-    
-    public void actionShieldUp() {
-	if (currentShield == 0) {
-	    currentShield = shieldCooldown;
-	}
-    }
-    
-    public void actionShieldDown() {
-	currentShield = 0;
-    }
-    
-    public void receiveDamage(float damage) {
-	if (!dead) {
-	    float shieldReduction = currentShield*shieldDefense;
-	    if (shieldReduction < damage) {
-		hitPoints -= (damage-shieldReduction);
-	    }
-	    if (currentShield > 0) {
-		shieldCooldown -= shieldPenalty;
-	    }
-	    dead = (hitPoints <= 0);
-	}
     }
     
     public void tick(double count) {
@@ -341,10 +162,6 @@ public class Bot {
 		break;
 	}
     }
-
-    public int getWins() {
-	return battlesWon;
-    }
     
     public Genes getGenes() {
 	return genes;
@@ -353,31 +170,6 @@ public class Bot {
     public boolean isAlive() {
 	return !dead;
     }
-    
-    public void resetBattles() {
-	this.totalBattlesFought += this.battlesFought;
-	this.totalBattlesWon += this.battlesWon;
-	
-	this.battlesFought = 0;
-	this.battlesWon = 0;
-    }
-    
-    public void tallyBattle() {
-	battlesFought++;
-	if (isAlive()) {
-	    battlesWon++;
-	}
-    }
-    
-    public void newBattle(Bot enemy) {
-	this.enemy = enemy;
-	this.attackCooldown = 1;
-	this.shieldCooldown = 1;
-	this.hitPoints = this.maxHitPoints;
-	this.getStrategy().reset();
-	this.dead = false;
-    }
-    
     public void kill() {
 	this.dead = true;
     }
@@ -385,7 +177,7 @@ public class Bot {
     public BufferedImage getImage(int alignment) {
 	BufferedImage img = new BufferedImage(350,700,BufferedImage.TYPE_INT_ARGB);
 	Graphics g = img.getGraphics();
-	
+	/*
 	g.setFont(new Font("Arial",Font.BOLD,20));
 	g.setColor(Color.BLACK);
 	    
@@ -529,14 +321,14 @@ public class Bot {
 	    g.setFont(new Font("Arial",Font.BOLD,25));
 	    g.drawString("Stats",40,480);
 	}
-	
+	*/
 	return img;
     }
     
     public BufferedImage getBriefImage() {
 	BufferedImage img = new BufferedImage(350,80,BufferedImage.TYPE_INT_ARGB);
 	Graphics g = img.getGraphics();
-	
+	/*
 	g.setFont(new Font("Arial",Font.BOLD,20));
 	g.setColor(Color.BLACK);
 	    
@@ -563,15 +355,15 @@ public class Bot {
 	g.fillRect(barX+2, barY+2, (int)((barLength-4)*percent), barHeight-4);
 	g.setColor(Color.BLACK);
 	g.drawString(barName, barX+44, barY+18);
-	
+	*/
 	return img;
     }
 
     public BufferedImage getLastImage() {
-	
 	BufferedImage img = new BufferedImage(350,700,BufferedImage.TYPE_INT_ARGB);
 	Graphics g = img.getGraphics();
 	
+	/*
 	g.setFont(new Font("Arial",Font.BOLD,20));
 	g.setColor(Color.BLACK);
 	    
@@ -635,7 +427,7 @@ public class Bot {
 
 	g.setFont(new Font("Arial",Font.BOLD,25));
 	g.drawString("Stats",40,480);
-	
+	*/
 	return img;
     }
     
@@ -644,33 +436,5 @@ public class Bot {
      */
     public String getModelName() {
 	return modelName;
-    }
-
-    /**
-     * @return the best
-     */
-    public int getBestGeneration() {
-	return bestGeneration;
-    }
-
-    /**
-     * @return the statHealth
-     */
-    public int getStatHealth() {
-	return statHealth;
-    }
-
-    /**
-     * @return the statAttack
-     */
-    public int getStatAttack() {
-	return statAttack;
-    }
-
-    /**
-     * @return the statDefense
-     */
-    public int getStatDefense() {
-	return statDefense;
     }
 }
