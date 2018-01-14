@@ -178,55 +178,61 @@ public class Bot {
 	history = new boolean[Handler.MAP_SIZE][Handler.MAP_SIZE];
     }
     
-    public void doAction(int top, int down, int left, int right) {
-	if (!dead && !stuck) {
-	    if (!frozen) {
-		int topWorth = genes.getWorth(top);
-		int downWorth = genes.getWorth(down);
-		int leftWorth = genes.getWorth(left);
-		int rightWorth = genes.getWorth(right);
-		
-		int x = position[0];
-		int y = position[1];
-		
-		history[position[1]][position[0]] = true;
-		
-		if (topWorth >= downWorth && topWorth >= leftWorth && topWorth >= rightWorth) {
-		    if (Map.EFFECTS[top] != Map.EFFECT_BLOCKED && !history[position[1]-1][position[0]]) {
-			position[1]--;
-			results(top);
-		    }
+    public boolean doAction(int top, int down, int left, int right) {
+	if (dead || stuck) 
+	    return true;
+	
+	if (!frozen) {
+	    int topWorth = genes.getWorth(top);
+	    int downWorth = genes.getWorth(down);
+	    int leftWorth = genes.getWorth(left);
+	    int rightWorth = genes.getWorth(right);
+
+	    int x = position[0];
+	    int y = position[1];
+
+	    history[position[1]][position[0]] = true;
+
+	    if (topWorth >= downWorth && topWorth >= leftWorth && topWorth >= rightWorth) {
+		if (Map.EFFECTS[top] != Map.EFFECT_BLOCKED && !history[position[1]-1][position[0]]) {
+		    position[1]--;
+		    results(top);
+		    fitness++;
 		}
-		
-		if (downWorth >= topWorth && downWorth >= leftWorth && downWorth >= rightWorth) {
-		    if (Map.EFFECTS[down] != Map.EFFECT_BLOCKED && !history[position[1]+1][position[0]]) {
-			position[1]++;
-			results(down);
-		    }
-		}
-		
-		if (leftWorth >= downWorth && leftWorth >= topWorth && leftWorth >= rightWorth) {
-		    if (Map.EFFECTS[left] != Map.EFFECT_BLOCKED && !history[position[1]][position[0]-1]) {
-			position[0]--;
-			results(left);
-		    }
-		}
-		
-		if (rightWorth >= downWorth && rightWorth >= topWorth && rightWorth >= leftWorth) {
-		    if (Map.EFFECTS[right] != Map.EFFECT_BLOCKED && !history[position[1]][position[0]+1]) {
-			position[0]++;
-			results(right);
-		    }
-		}
-		
-		if (position[0] == x && position[1] == y) {
-		    stuck = true;
-		}
-		
-	    } else {
-		frozen = false;
 	    }
+
+	    if (downWorth >= topWorth && downWorth >= leftWorth && downWorth >= rightWorth) {
+		if (Map.EFFECTS[down] != Map.EFFECT_BLOCKED && !history[position[1]+1][position[0]]) {
+		    position[1]++;
+		    results(down);
+		    fitness++;
+		}
+	    }
+
+	    if (leftWorth >= downWorth && leftWorth >= topWorth && leftWorth >= rightWorth) {
+		if (Map.EFFECTS[left] != Map.EFFECT_BLOCKED && !history[position[1]][position[0]-1]) {
+		    position[0]--;
+		    results(left);
+		    fitness++;
+		}
+	    }
+
+	    if (rightWorth >= downWorth && rightWorth >= topWorth && rightWorth >= leftWorth) {
+		if (Map.EFFECTS[right] != Map.EFFECT_BLOCKED && !history[position[1]][position[0]+1]) {
+		    position[0]++;
+		    results(right);
+		    fitness++;
+		}
+	    }
+
+	    if (position[0] == x && position[1] == y) {
+		stuck = true;
+	    }
+
+	} else {
+	    frozen = false;
 	}
+	return false;
     }
     
     private void results(int current) {

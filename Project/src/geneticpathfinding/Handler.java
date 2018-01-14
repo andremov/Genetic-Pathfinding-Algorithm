@@ -50,14 +50,6 @@ public class Handler implements Runnable {
      */
     public ArrayList<Bot> botList;
     /**
-     * Battling bot 1.
-     */
-    private int battleBot1;
-    /**
-     * Battling bot 2.
-     */
-    private int battleBot2;
-    /**
      * Selected bot 1.
      */
     private int breedBot1;
@@ -108,7 +100,7 @@ public class Handler implements Runnable {
     /**
      * Force draw.
      */
-    private final double maxSimTick = 10000;
+    private final double maxSimTick = 1000;
     /**
      * Max wait time for state transitions.
      */
@@ -163,13 +155,6 @@ public class Handler implements Runnable {
 	    creatingBot = 0;
 	    waitTicks = 0;
 	    currentState = STATE_START;
-	} else {
-//	    if (creatingBot == realPopulation) {
-//		waitTicks++;
-//	    } else {
-//		botList.add(new Bot(currentGen,creatingBot));
-//		creatingBot++;
-//	    }
 	}
     }
     
@@ -807,10 +792,11 @@ public class Handler implements Runnable {
     
     private void simTick() {
 	simTick++;
+	
 	if (simTick > maxSimTick) {
 	    simTick = 0;
-//	} else {
-	    
+	    boolean endSim = false;
+	    boolean botsDone = true;
 	    for (int i = 0; i < botList.size(); i++) {
 		int x = botList.get(i).getX();
 		int y = botList.get(i).getY();
@@ -820,7 +806,15 @@ public class Handler implements Runnable {
 		int left = currentMap.getTileID(x-1, y);
 		int right = currentMap.getTileID(x+1, y);
 		
-		botList.get(i).doAction(top, down, left, right);
+		botsDone = botList.get(i).doAction(top, down, left, right) && botsDone;
+		boolean botFinished = botList.get(i).getX() == currentMap.getFinish()[0] && botList.get(i).getY() == currentMap.getFinish()[1];
+		endSim = botFinished || endSim;
+	    }
+	    endSim = endSim || botsDone;
+	    if (endSim) {
+		rankingBot = 0;
+		waitTicks = 0;
+		currentState = STATE_RANK;
 	    }
 	}
 	
